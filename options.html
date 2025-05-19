@@ -8,16 +8,16 @@
   <body>
     <h1>AI Helper Configuration</h1>
     <div>
-      <label for="apiUrl">AI API Endpoint URL:</label>
+      <label for="baseUrl">Base URL:</label>
       <input
         type="url"
-        id="apiUrl"
-        placeholder="e.g., https://api.example.com/v1/completions"
+        id="baseUrl"
+        placeholder="e.g., https://api.openai.com"
       />
     </div>
     <div>
-      <label for="apiKey">AI API Key:</label>
-      <input type="text" id="apiKey" placeholder="Enter your API Key" />
+      <label for="apiKey">API Key:</label>
+      <input type="text" id="apiKey" placeholder="Enter your openai's API Key" />
     </div>
     <button id="saveButton">Save Settings</button>
     <div id="statusMessage"></div>

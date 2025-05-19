@@ -1,35 +1,35 @@
 // options.js
 document.addEventListener("DOMContentLoaded", () => {
-  const apiUrlInput = document.getElementById("apiUrl");
+  const baseUrlInput = document.getElementById("baseUrl");
   const apiKeyInput = document.getElementById("apiKey");
   const saveButton = document.getElementById("saveButton");
   const statusMessage = document.getElementById("statusMessage");
 
   // Load saved settings
-  chrome.storage.sync.get(["aiApiUrl", "aiApiKey"], (items) => {
-    if (items.aiApiUrl) {
-      apiUrlInput.value = items.aiApiUrl;
+  chrome.storage.sync.get(["baseUrl", "apiKey"], (items) => {
+    if (items.baseUrl) {
+      baseUrlInput.value = items.baseUrl;
     }
-    if (items.aiApiKey) {
-      apiKeyInput.value = items.aiApiKey;
+    if (items.apiKey) {
+      apiKeyInput.value = items.apiKey;
     }
   });
 
   // Save settings
   saveButton.addEventListener("click", () => {
-    const apiUrl = apiUrlInput.value;
+    const baseUrl = baseUrlInput.value;
     const apiKey = apiKeyInput.value;
 
-    if (!apiUrl || !apiKey) {
-      statusMessage.textContent = "Error: API URL and API Key cannot be empty.";
+    if (!apiKey) {
+      statusMessage.textContent = "Error: API Key cannot be empty.";
       statusMessage.style.color = "red";
       return;
     }
 
     chrome.storage.sync.set(
       {
-        aiApiUrl: apiUrl,
-        aiApiKey: apiKey,
+        baseUrl: baseUrl,
+        apiKey: apiKey,
       },
       () => {
         statusMessage.textContent = "Settings saved!";

@@ -1,26 +1,91 @@
 // content_script.js
 console.log("Product Hunt AI Helper content script loaded.");
 
+// Selector for the original Product Hunt "Comment" button
 const PH_COMMENT_BUTTON_SELECTOR = 'button[data-test="form-submit-button"]';
-const PH_TEXTAREA_SELECTOR = ".rta__textarea"; // Common class for their rich text area
+// More specific selector for the Tiptap/ProseMirror editor area within the form
+const PH_EDITOR_SELECTOR = 'div.ProseMirror[contenteditable="true"]';
 
 function getPostContext() {
-  // This is a simplified context grabber.
-  // For Product Hunt, you might want to grab the product title or description.
-  // Example: Find the main product title
-  const productTitleElement = document.querySelector("h1"); // This is a guess, inspect PH for actual selectors
-  let contextText = "Regarding the product ";
-  if (productTitleElement) {
-    contextText += `"${productTitleElement.textContent.trim()}"`;
-  } else {
-    contextText += "being discussed";
+  let context = {
+    productName: null,
+    shortDescription: null,
+    mainDescription: null,
+    pricing: null,
+    tags: [],
+  };
+
+  const headerImageSection = document.querySelector(
+    'section[data-test="post-header-image"]'
+  );
+
+  if (headerImageSection) {
+    const titleElement = headerImageSection.querySelector("h1");
+    const descriptionElement = headerImageSection.querySelector("h1 + div");
+
+    let titleText = titleElement ? titleElement.textContent.trim() : "";
+    titleText = titleText.replace(/^\d+\.\s*/, "");
+    const descriptionText = descriptionElement
+      ? descriptionElement.textContent.trim()
+      : "";
+
+    context.productName = titleText;
+    context.shortDescription = descriptionText;
   }
-  return contextText;
+
+  const descriptionElement = document.querySelector(
+    'div.prose[class*="text-16"][class*="text-dark-gray"]'
+  );
+  if (descriptionElement) {
+    context.mainDescription = descriptionElement.textContent?.trim() || null;
+  }
+
+  const pricingElement = document.querySelector(
+    'div[data-test="pricing-type"]'
+  );
+  if (pricingElement) {
+    context.pricing = pricingElement.textContent?.trim() || null;
+  }
+
+  const tagListContainer = document.querySelector(
+    'div[data-sentry-component="TagList"]'
+  );
+  if (tagListContainer) {
+    tagListContainer
+      .querySelectorAll('a[href^="/topics/"]')
+      .forEach((tagElement) => {
+        if (tagElement.textContent) {
+          context.tags.push(tagElement.textContent.trim());
+        }
+      });
+  }
+
+  return context; // Return the structured object
+}
+
+// Function to find the associated editor for a given comment button
+function findAssociatedEditor(commentButton) {
+  const form = commentButton.closest('form[data-test="comment-form"]');
+  if (form) {
+    const editor = form.querySelector(PH_EDITOR_SELECTOR);
+    if (editor) {
+      return editor;
+    }
+  }
+  // Fallback if the structure is unexpected, though less likely with the provided HTML
+  console.warn(
+    "Could not find editor within the form associated with the comment button."
+  );
+  return document.querySelector(PH_EDITOR_SELECTOR); // Last resort, might pick the wrong one if multiple forms exist
 }
 
 function addAiButton(commentButton) {
-  if (commentButton.parentElement.querySelector(".ai-generate-button-ph")) {
-    // Button already exists
+  // Prevent adding duplicate buttons
+  const buttonContainer = commentButton.parentElement;
+  if (
+    !buttonContainer ||
+    buttonContainer.querySelector(".ai-generate-button-ph")
+  ) {
     return;
   }
 
@@ -29,58 +94,84 @@ function addAiButton(commentButton) {
   aiButton.className = "ai-generate-button-ph";
 
   aiButton.addEventListener("click", async (event) => {
-    event.preventDefault(); // Prevent any default form submission
+    event.preventDefault();
+    // Unfollow the post
+    const checkbox = document.querySelector(
+      "div.styles_checkbox__HxLrG.styles_checked__7Q_rK"
+    );
+    if (checkbox) {
+      checkbox.click();
+      console.log("Checkbox clicked to unfollow.");
+    }
+
     aiButton.disabled = true;
     aiButton.textContent = "Generating...";
 
-    const postContext = getPostContext(); // Get some context from the page
-    // TODO This is prompt
-    const topic = `Write a supportive and insightful comment for Product Hunt ${postContext}.`;
+    const postContext = getPostContext();
+    console.log("Post context:", postContext);
 
     try {
       const response = await chrome.runtime.sendMessage({
         action: "generateComment",
-        promptText: topic, // Send this topic to your AI
+        postContext: postContext,
       });
 
       if (response.error) {
         console.error("AI Error:", response.error);
         alert(`Error: ${response.error}`);
-        // Potentially update a status area instead of alert
       } else if (response.comment) {
-        const textarea = commentButton
-          .closest("form")
-          ?.querySelector(PH_TEXTAREA_SELECTOR);
-        if (textarea) {
-          // For simple textareas:
-          // textarea.value = response.comment;
-          // textarea.dispatchEvent(new Event('input', { bubbles: true })); // Notify PH of change
+        const editorElement = findAssociatedEditor(commentButton);
 
-          // For rich text editors (like Product Hunt's likely is),
-          // direct value assignment might not work.
-          // You might need to simulate typing or use clipboard.
-          // This is the most complex part and highly site-specific.
-          // As a fallback, you can copy to clipboard and notify the user.
-          navigator.clipboard
-            .writeText(response.comment)
-            .then(() => {
-              alert(
-                "Comment generated and copied to clipboard! Paste it into the text area."
-              );
-            })
-            .catch((err) => {
-              console.error("Failed to copy: ", err);
-              alert(
-                "Comment generated, but failed to copy to clipboard. See console."
-              );
-              console.log("Generated comment:", response.comment);
-            });
+        if (editorElement) {
+          console.log("Editor found:", editorElement);
+
+          // For contenteditable divs (like ProseMirror)
+          editorElement.focus(); // Focus the editor
+
+          // Clear existing placeholder content if it's the default empty <p><br></p>
+          const firstParagraph =
+            editorElement.querySelector("p.is-editor-empty");
+          if (
+            firstParagraph &&
+            editorElement.children.length === 1 &&
+            firstParagraph.innerHTML.toLowerCase() ===
+              '<br class="prosemirror-trailingbreak">'
+          ) {
+            editorElement.innerHTML = ""; // Clear it
+          }
+
+          // Create a new paragraph with the comment
+          const newParagraph = document.createElement("p");
+          newParagraph.textContent = response.comment;
+          editorElement.appendChild(newParagraph);
+
+          // Attempt to trigger input events that Product Hunt's JS might listen to
+          // This is often necessary for the site to recognize the change.
+          editorElement.dispatchEvent(
+            new Event("input", { bubbles: true, cancelable: true })
+          );
+          editorElement.dispatchEvent(
+            new Event("change", { bubbles: true, cancelable: true })
+          );
+          editorElement.dispatchEvent(
+            new KeyboardEvent("keydown", { bubbles: true })
+          ); // Simulate some activity
+          editorElement.dispatchEvent(
+            new KeyboardEvent("keyup", { bubbles: true })
+          );
         } else {
           console.warn(
-            "Could not find Product Hunt textarea with selector:",
-            PH_TEXTAREA_SELECTOR
+            "Could not find Product Hunt editor using selector:",
+            PH_EDITOR_SELECTOR
           );
-          alert("Textarea not found. Comment: " + response.comment);
+          alert(
+            "Editor not found. Comment: " +
+              response.comment +
+              " (copied to clipboard)"
+          );
+          navigator.clipboard
+            .writeText(response.comment)
+            .catch((err) => console.error("Copy failed: ", err));
         }
       }
     } catch (error) {
@@ -92,9 +183,9 @@ function addAiButton(commentButton) {
     }
   });
 
-  // Insert the AI button after the original comment button
+  // Insert the AI button BEFORE the original Product Hunt "Comment" button
   commentButton.parentNode.insertBefore(aiButton, commentButton);
-  console.log("AI Generate button added next to:", commentButton);
+  // console.log("AI Generate button added to the left of:", commentButton);
 }
 
 function observeAndAddButtons() {
@@ -102,13 +193,19 @@ function observeAndAddButtons() {
   const config = { childList: true, subtree: true };
 
   const callback = function (mutationsList, observer) {
-    const commentButtons = document.querySelectorAll(
-      PH_COMMENT_BUTTON_SELECTOR
-    );
-    commentButtons.forEach((button) => {
-      // Check if our button is already there to avoid duplicates
-      if (!button.parentNode.querySelector(".ai-generate-button-ph")) {
-        addAiButton(button);
+    // Query for all potential comment submission buttons on the page
+    document.querySelectorAll(PH_COMMENT_BUTTON_SELECTOR).forEach((button) => {
+      // Check if the button is part of a comment form we can identify
+      const form = button.closest('form[data-test="comment-form"]');
+      if (form) {
+        // Check if our AI button already exists within this specific form's button container
+        const buttonContainer = button.parentElement;
+        if (
+          buttonContainer &&
+          !buttonContainer.querySelector(".ai-generate-button-ph")
+        ) {
+          addAiButton(button);
+        }
       }
     });
   };
@@ -116,11 +213,13 @@ function observeAndAddButtons() {
   const observer = new MutationObserver(callback);
   observer.observe(targetNode, config);
 
-  // Initial check in case buttons are already present
-  const initialCommentButtons = document.querySelectorAll(
-    PH_COMMENT_BUTTON_SELECTOR
-  );
-  initialCommentButtons.forEach(addAiButton);
+  // Initial check
+  document.querySelectorAll(PH_COMMENT_BUTTON_SELECTOR).forEach((button) => {
+    const form = button.closest('form[data-test="comment-form"]');
+    if (form) {
+      addAiButton(button);
+    }
+  });
 }
 
 // Start observing when the content script loads
