@@ -1,23 +1,31 @@
 /* content_script.css */
+
 .ai-generate-button-ph {
-    background-color: #da552f; /* Product Hunt Orange */
-    color: white;
-    border: none;
-    padding: 8px 12px; /* Adjust to match PH button */
-    margin-left: 8px; /* Space from the original button */
-    border-radius: 4px;
+    max-height: 2.75rem;
+    border-radius: 9999px; /* 圆形按钮风格 */
+    border-width: 2px;
+    border-style: solid;
+    border-color: #da552f; /* Product Hunt 橙色边框 */
+    background-color: #da552f; /* Product Hunt 橙色背景 */
+    padding: 0.5rem 1rem; /* 与原按钮一致的内边距 */
+    text-align: center;
+    font-size: 16px; /* 保持原始字体大小 */
+    font-weight: 600; /* 保持原始字体粗细 */
+    color: white; /* 文本颜色设为白色，更鲜明 */
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
     cursor: pointer;
-    font-size: 14px; /* Match PH font size */
-    font-weight: 600; /* Match PH font weight */
-    line-height: 1.5; /* Match PH line height */
-    transition: background-color 0.2s ease;
+    line-height: 1.5; /* 与原按钮一致的行高 */
+    box-sizing: border-box;
 }
 
 .ai-generate-button-ph:hover {
-    background-color: #c3441f; /* Darker orange on hover */
+    background-color: #c3441f; /* 鼠标悬浮时背景加深 */
+    border-color: #c3441f;
 }
 
 .ai-generate-button-ph:disabled {
-    background-color: #f0a088;
+    background-color: #f0a088; /* 禁用状态下颜色变浅 */
+    border-color: #f0a088;
     cursor: not-allowed;
+    opacity: 0.7;
 }

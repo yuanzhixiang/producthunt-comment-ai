@@ -100,7 +100,7 @@ function addAiButton(commentButton) {
 
   const aiButton = document.createElement("button");
   aiButton.textContent = "✨ AI Gen";
-  aiButton.className = "ai-generate-button-ph"; // Ensure styles are in content_script.css
+  aiButton.className = "ai-generate-button-ph";
 
   aiButton.addEventListener("click", async (event) => {
     event.preventDefault();
