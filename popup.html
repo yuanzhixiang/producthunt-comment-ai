@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>AI Comment Helper</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>Generate Comment</h1>
+    <div>
+      <label for="inputText">Enter text or topic for the comment:</label>
+      <textarea
+        id="inputText"
+        rows="4"
+        placeholder="e.g., The main points of the article..."
+      ></textarea>
+    </div>
+    <button id="generateButton">Generate</button>
+    <div id="loadingIndicator" style="display: none">Generating...</div>
+    <h2>Result:</h2>
+    <div id="resultArea">
+      <p id="commentOutput">Your generated comment will appear here.</p>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+/* content_script.css */
+.ai-generate-button-ph {
+    background-color: #da552f; /* Product Hunt Orange */
+    color: white;
+    border: none;
+    padding: 8px 12px; /* Adjust to match PH button */
+    margin-left: 8px; /* Space from the original button */
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px; /* Match PH font size */
+    font-weight: 600; /* Match PH font weight */
+    line-height: 1.5; /* Match PH line height */
+    transition: background-color 0.2s ease;
+}
+
+.ai-generate-button-ph:hover {
+    background-color: #c3441f; /* Darker orange on hover */
+}
+
+.ai-generate-button-ph:disabled {
+    background-color: #f0a088;
+    cursor: not-allowed;
+}

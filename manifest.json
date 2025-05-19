@@ -1,0 +1,37 @@
+{
+    "manifest_version": 3,
+    "name": "Product Hunt AI Comment Helper",
+    "version": "1.0.0",
+    "description": "Generates comments for Product Hunt using a configured AI API.",
+    "permissions": [
+      "storage",
+      "activeTab" 
+    ],
+    "host_permissions": [
+      "https://www.producthunt.com/*",
+      "https://api.openai.com/*"
+    ],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "action": {
+      "default_popup": "popup.html",
+      "default_title": "AI Comment Helper"
+    },
+    "options_ui": {
+      "page": "options.html",
+      "open_in_tab": true
+    },
+    "content_scripts": [
+      {
+        "matches": ["https://www.producthunt.com/*"],
+        "js": ["content_script.js"],
+        "css": ["content_script.css"]
+      }
+    ],
+    "icons": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
