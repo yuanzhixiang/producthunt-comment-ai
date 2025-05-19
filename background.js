@@ -47,18 +47,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const messages = [
         {
           role: "system",
-          content:
-            "You are a helpful assistant that generates insightful and relevant social media comments. " +
-            (request.social ? `The comment is for ${request.social}. ` : "") +
-            (request.tone && request.tone !== "0"
-              ? `The desired tone is ${request.toneLabel}. `
-              : "") +
-            (request.length && request.length !== "0"
-              ? `The desired length is ${request.lengthLabel}. `
-              : "") +
-            (request.language && request.language !== "0"
-              ? `Please respond in ${request.languageLabel}. `
-              : "Respond in English."),
+          content: "Based on the input product information (link or text), generate a Product Hunt style review in English. Requirements: 1-2 sentences, first-person, praise-only and specific (highlighting features/design/benefits and connecting to user pain points), authentic and enthusiastic tone, no emojis or suggestions for improvement. Output only the review text."
         },
         {
           role: "user",

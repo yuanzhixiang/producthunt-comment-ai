@@ -84,9 +84,9 @@ function addAiButton(commentButton) {
 
                     // Create a new paragraph with the comment
                     const newParagraph = document.createElement('p');
+                    console.log("Generated comment:", response.comment);
                     newParagraph.textContent = response.comment;
                     editorElement.appendChild(newParagraph);
-
 
                     // Attempt to trigger input events that Product Hunt's JS might listen to
                     // This is often necessary for the site to recognize the change.
@@ -94,18 +94,6 @@ function addAiButton(commentButton) {
                     editorElement.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
                     editorElement.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true })); // Simulate some activity
                     editorElement.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
-
-                    // Fallback: Copy to clipboard as a less invasive method if direct input is problematic
-                    // You might still want to keep this as an option or if direct input fails.
-                    /*
-                    navigator.clipboard.writeText(response.comment).then(() => {
-                        alert("Comment generated and copied to clipboard! Paste it into the comment box.");
-                    }).catch(err => {
-                        console.error("Failed to copy to clipboard: ", err);
-                        alert("Comment generated (see console), but failed to copy to clipboard.");
-                        console.log("Generated comment:", response.comment);
-                    });
-                    */
 
                 } else {
                     console.warn("Could not find Product Hunt editor using selector:", PH_EDITOR_SELECTOR);
@@ -124,7 +112,7 @@ function addAiButton(commentButton) {
 
     // Insert the AI button BEFORE the original Product Hunt "Comment" button
     commentButton.parentNode.insertBefore(aiButton, commentButton);
-    console.log("AI Generate button added to the left of:", commentButton);
+    // console.log("AI Generate button added to the left of:", commentButton);
 }
 
 function observeAndAddButtons() {

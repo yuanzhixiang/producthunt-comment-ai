@@ -20,8 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const baseUrl = baseUrlInput.value;
     const apiKey = apiKeyInput.value;
 
-    if (!baseUrl || !apiKey) {
-      statusMessage.textContent = "Error: Base URL and API Key cannot be empty.";
+    if (!apiKey) {
+      statusMessage.textContent = "Error: API Key cannot be empty.";
       statusMessage.style.color = "red";
       return;
     }
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.sync.set(
       {
         baseUrl: baseUrl,
-        aiApiKey: apiKey,
+        apiKey: apiKey,
       },
       () => {
         statusMessage.textContent = "Settings saved!";
