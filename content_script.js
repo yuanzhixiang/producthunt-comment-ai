@@ -80,15 +80,6 @@ function findAssociatedEditor(commentButton) {
 }
 
 function addAiButton(commentButton) {
-  // Unfollow the post
-  const checkbox = document.querySelector(
-    "div.styles_checkbox__HxLrG.styles_checked__7Q_rK"
-  );
-  if (checkbox) {
-    checkbox.click();
-    console.log("Checkbox clicked to unfollow.");
-  }
-
   // Prevent adding duplicate buttons
   const buttonContainer = commentButton.parentElement;
   if (
@@ -104,6 +95,15 @@ function addAiButton(commentButton) {
 
   aiButton.addEventListener("click", async (event) => {
     event.preventDefault();
+    // Unfollow the post
+    const checkbox = document.querySelector(
+      "div.styles_checkbox__HxLrG.styles_checked__7Q_rK"
+    );
+    if (checkbox) {
+      checkbox.click();
+      console.log("Checkbox clicked to unfollow.");
+    }
+
     aiButton.disabled = true;
     aiButton.textContent = "Generating...";
 

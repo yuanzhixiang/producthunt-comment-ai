@@ -69,14 +69,7 @@ Alternatively:
 
 * The extension uses product details (name, tagline, description) automatically to create an insightful comment.
 
-### 5. Review & Edit
-
-* The AI-generated comment automatically appears in the Product Hunt comment editor.
-* Always review and personalize the comment for accuracy and authenticity.
-
-> **Note:** If automatic insertion fails, the comment is copied to your clipboard. Manually paste it (Ctrl+V or Cmd+V).
-
-### 6. Submit
+### 5. Submit
 
 * Click Product Hunt’s original **Comment** button to publish your comment.
 
