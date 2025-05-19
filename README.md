@@ -8,11 +8,7 @@ This Chrome extension helps you effortlessly generate insightful, AI-powered com
 
 Watch this quick tutorial demonstrating setup and usage:
 
-<video width="100%" height="auto" controls>
-  <source src="https://github.com/yuanzhixiang/producthunt-comment-ai/raw/develop/20250519/support_openai/tutorial.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-
+![▶️ Watch Video Tutorial](https://github.com/yuanzhixiang/producthunt-comment-ai/raw/develop/20250519/support_openai/tutorial.mp4)
 
 ## 📦 Installation
 
