@@ -38,12 +38,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
       const apiUrl = constBaseUrl + "/v1/chat/completions";
 
-      let promptText = request.promptText;
-      if (!promptText) {
-        sendResponse({ error: "Prompt text is missing." });
+      let postContext = request.postContext;
+      if (!postContext) {
+        sendResponse({ error: "Post context is missing." });
         return;
       }
 
+      const userPrompt = `Please generate a brief Product Hunt-style review for the following product:\n\n${postContext}`;
       const messages = [
         {
           role: "system",
@@ -51,7 +52,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         },
         {
           role: "user",
-          content: promptText,
+          content: userPrompt,
         },
       ];
 
