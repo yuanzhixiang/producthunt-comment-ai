@@ -44,7 +44,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return;
       }
 
-      const userPrompt = `Please generate a brief Product Hunt-style review for the following product:\n\n${postContext}`;
+      const userPrompt = `Please generate a brief Product Hunt-style review for the following product:\n\n${JSON.stringify(postContext)}`;
       const messages = [
         {
           role: "system",
