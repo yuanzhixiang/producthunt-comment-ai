@@ -80,6 +80,15 @@ function findAssociatedEditor(commentButton) {
 }
 
 function addAiButton(commentButton) {
+  // Unfollow the post
+  const checkbox = document.querySelector(
+    "div.styles_checkbox__HxLrG.styles_checked__7Q_rK"
+  );
+  if (checkbox) {
+    checkbox.click();
+    console.log("Checkbox clicked to unfollow.");
+  }
+
   // Prevent adding duplicate buttons
   const buttonContainer = commentButton.parentElement;
   if (
@@ -102,10 +111,10 @@ function addAiButton(commentButton) {
     console.log("Post context:", postContext);
 
     try {
-        const response = await chrome.runtime.sendMessage({
-          action: "generateComment",
-          postContext: postContext,
-        });
+      const response = await chrome.runtime.sendMessage({
+        action: "generateComment",
+        postContext: postContext,
+      });
 
       if (response.error) {
         console.error("AI Error:", response.error);
@@ -133,7 +142,6 @@ function addAiButton(commentButton) {
 
           // Create a new paragraph with the comment
           const newParagraph = document.createElement("p");
-          console.log("Generated comment:", response.comment);
           newParagraph.textContent = response.comment;
           editorElement.appendChild(newParagraph);
 
