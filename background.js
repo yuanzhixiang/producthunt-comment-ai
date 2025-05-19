@@ -1,15 +1,13 @@
-// background.js
-
 // Function to get API configuration from storage
 async function getApiConfig() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(["aiApiKey", "aiApiUrl"], (items) => {
+    chrome.storage.sync.get(["apiKey", "baseUrl"], (items) => {
       if (chrome.runtime.lastError) {
         console.error(
           "Error getting API config from storage:",
           chrome.runtime.lastError.message
         );
-        resolve({ aiApiKey: null, aiApiUrl: null });
+        resolve({ apiKey: null, baseUrl: null });
         return;
       }
       resolve(items);
@@ -21,101 +19,110 @@ async function getApiConfig() {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "generateComment") {
     (async () => {
-      const { aiApiKey, aiApiUrl } = await getApiConfig();
+      const { apiKey, baseUrl } = await getApiConfig();
 
-    //   if (!aiApiKey) {
-    //     sendResponse({
-    //       error:
-    //         "OpenAI API Key is not configured. Please set it in the extension options.",
-    //     });
-    //     return;
-    //   }
+      if (!apiKey) {
+        sendResponse({
+          error:
+            "OpenAI API Key is not configured. Please set it in the extension options.",
+        });
+        return;
+      }
 
-    //   // Use a default OpenAI-compatible URL if not set, or allow user to override
-    //   const apiUrl = aiApiUrl || "https://api.openai.com/v1/chat/completions"; // Default OpenAI endpoint
+      let constBaseUrl;
+      if (baseUrl) {
+        constBaseUrl = baseUrl;
+      } else {
+        constBaseUrl = "https://api.openai.com";
+      }
 
-    //   let promptText = request.promptText;
-    //   if (!promptText) {
-    //     sendResponse({ error: "Prompt text is missing." });
-    //     return;
-    //   }
+      const apiUrl = constBaseUrl + "/v1/chat/completions";
 
-    //   // Constructing a prompt for OpenAI Chat Completions
-    //   // You might want to pass 'tone', 'length', 'social' from the content script
-    //   // and incorporate them into the system or user message.
-    //   const messages = [
-    //     {
-    //       role: "system",
-    //       content:
-    //         "You are a helpful assistant that generates insightful and relevant social media comments. " +
-    //         (request.social ? `The comment is for ${request.social}. ` : "") +
-    //         (request.tone && request.tone !== "0"
-    //           ? `The desired tone is ${request.toneLabel}. `
-    //           : "") +
-    //         (request.length && request.length !== "0"
-    //           ? `The desired length is ${request.lengthLabel}. `
-    //           : "") +
-    //         (request.language && request.language !== "0"
-    //           ? `Please respond in ${request.languageLabel}. `
-    //           : "Respond in English."),
-    //     },
-    //     {
-    //       role: "user",
-    //       content: promptText,
-    //     },
-    //   ];
+      let promptText = request.promptText;
+      if (!promptText) {
+        sendResponse({ error: "Prompt text is missing." });
+        return;
+      }
 
-    //   const requestBody = {
-    //     model: "gpt-3.5-turbo", // Or any other model you prefer, e.g., "gpt-4"
-    //     messages: messages,
-    //     max_tokens:
-    //       request.length === "1" ? 50 : request.length === "3" ? 200 : 100, // Example: map length to tokens
-    //     temperature: 0.7,
-    //     // stream: false, // Set to true and handle differently if you want streaming
-    //   };
+      const messages = [
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant that generates insightful and relevant social media comments. " +
+            (request.social ? `The comment is for ${request.social}. ` : "") +
+            (request.tone && request.tone !== "0"
+              ? `The desired tone is ${request.toneLabel}. `
+              : "") +
+            (request.length && request.length !== "0"
+              ? `The desired length is ${request.lengthLabel}. `
+              : "") +
+            (request.language && request.language !== "0"
+              ? `Please respond in ${request.languageLabel}. `
+              : "Respond in English."),
+        },
+        {
+          role: "user",
+          content: promptText,
+        },
+      ];
 
-    //   console.log("Sending to AI API:", apiUrl);
-    //   console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+      const requestBody = {
+        model: "gpt-4o-mini",
+        messages: messages,
+        max_tokens: 1000,
+        temperature: 0.7,
+        // stream: false, // Set to true and handle differently if you want streaming
+      };
 
-    //   try {
-    //     const response = await fetch(apiUrl, {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         Authorization: `Bearer ${aiApiKey}`,
-    //       },
-    //       body: JSON.stringify(requestBody),
-    //     });
+      console.log("Sending to AI API:", apiUrl);
+      console.log("Request Body:", JSON.stringify(requestBody, null, 2));
 
-    //     const responseData = await response.json();
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(requestBody),
+        });
 
-    //     if (!response.ok) {
-    //       console.error("AI API Error:", response.status, responseData);
-    //       const errorMessage =
-    //         responseData.error?.message ||
-    //         response.statusText ||
-    //         "Unknown API error";
-    //       sendResponse({
-    //         error: `API Error (${response.status}): ${errorMessage}`,
-    //       });
-    //       return;
-    //     }
+        let responseData;
 
-    //     // Extract the generated text from OpenAI's Chat Completions response
-    //     const generatedComment =
-    //       responseData.choices &&
-    //       responseData.choices[0] &&
-    //       responseData.choices[0].message &&
-    //       responseData.choices[0].message.content
-    //         ? responseData.choices[0].message.content.trim()
-    //         : "Could not extract comment from API response.";
+        if (!response.ok) {
+          console.error("AI API Error:", response.status);
+          const errorMessage =
+            response.statusText ||
+            "Unknown API error";
+          sendResponse({
+            error: `API Error (${response.status}): ${errorMessage}`,
+          });
+          return;
+        }
 
-    //     sendResponse({ comment: generatedComment });
-    //   } catch (error) {
-    //     console.error("Error calling AI API:", error);
-    //     sendResponse({ error: `Network or other error: ${error.message}` });
-    //   }
-      sendResponse({ comment: "Hello, " + aiApiKey}); 
+        try {
+            responseData = await response.json();
+        } catch (error) {
+            const text = await response.text();
+            console.error("Error parsing AI API response:", text, error);
+            sendResponse({ error: "Invalid JSON response from AI API." });
+            return;
+        }
+
+        // Extract the generated text from OpenAI's Chat Completions response
+        const generatedComment =
+          responseData.choices &&
+          responseData.choices[0] &&
+          responseData.choices[0].message &&
+          responseData.choices[0].message.content
+            ? responseData.choices[0].message.content.trim()
+            : "Could not extract comment from API response.";
+
+        sendResponse({ comment: generatedComment });
+      } catch (error) {
+        console.error("Error calling AI API:", error);
+        sendResponse({ error: `Network or other error: ${error.message}` });
+      }
     })();
     return true; // Indicates that sendResponse will be called asynchronously
   }
